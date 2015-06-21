@@ -1,8 +1,8 @@
 import re
 import requests
+from bs4 import BeautifulSoup
 
 import constants
-
 
 def get_string(regex, string)
     ret = re.findall(regex, string)
@@ -36,4 +36,22 @@ class Page(object):
         username_id = temp[0][1:]
         username, num = re.subn(HTML_LABLE, '', line[0])
 
-        return username, username_id
+       return username, username_id
+
+    def get_notebookIDs(self):
+        # Get user notebooks id
+        notebookids = []
+        lines = get_string(REG_NOTEBOOKIDS_L, self.content)
+        if not lines:
+            logger.info("Get notebook id lines error, url is " + self.url)
+            return False
+
+        for line in lines:
+            temp = get_string(REG_NOTEBOOKID, line)
+            if not line:
+                logger.info("Get notebook id line error, url is " + self.url)
+                return False
+
+            notebookids.append(temp[0])
+
+        return notebookids
