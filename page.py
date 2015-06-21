@@ -18,6 +18,7 @@ class Page(object):
             logger.info("Get url error, url is " + url)
             return False
 
+        self.soup = BeautifulSoup(page.text)
         self.content = page.conten;
         self.url = url
 
@@ -55,3 +56,20 @@ class Page(object):
             notebookids.append(temp[0])
 
         return notebookids
+
+    def get_diary_date(self):
+
+        try:
+            date_html = self.soup.find('div', attrs={'class':'sidebar-item title-date'})
+            month_day = date_html.string.strip()
+            year = date_html.find('span').string
+        except:
+            logger.info("Get diary date error, url is " + self.url)
+            return False
+
+        date = year+month_day
+        return date
+
+
+
+

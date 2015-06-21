@@ -11,3 +11,13 @@ REG_ICON_IMG_L = r'<img class="bigicon" .*>'
 REG_NOTEBOOKIDS_L = r'<a class="cov" href="/notebook/.*|<a class="add" href="/notebook/.*'
 REG_NOTEBOOK = r'\d{1-10}'
 REG_NOTEBOOK_NAME_L = r'<a class="add" href="/notebook/.*'
+
+# Log configuration
+LOGS            = '/var/log/'
+OLD_LOGS        = '/var/log.old/'
+LOG_NAME        = 'diary'
+LOG_FILE        = 'diarySpider.log'
+LOG_BACKUP_COUNT      = 20
+MAX_LOG_SIZE          = 1024 * 1024 * 5
+
+

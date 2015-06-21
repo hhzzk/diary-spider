@@ -46,27 +46,3 @@ class DiaryPage(userPage):
 
         return time, content, img
 
-    def get_diary_comments(self):
-        # Get comments
-        comments_html = soup.find_all('div', class_='comments')
-        line = get_string(REG_ICON_IMG_L, self.content)
-        if not line:
-            logger.info("Get icon image line error, url is " + self.url)
-            return False
-
-        try:
-            icon_img_url = line[0].splite('"')[3]
-        except:
-            logger.info("Get icon image url error, line is " + line[0])
-            return False
-
-        ret = requests.get(icon_img_url)
-        if ret.status_code != 200:
-            logger.info("Get icon image request error, url is " + icon_img_url)
-            return False
-
-        icon_img = ret.content
-
-        return icon_img
-
-
