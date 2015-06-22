@@ -1,9 +1,10 @@
+# -*- coding: UTF-8 -*-
 import logging, os, gzip
 from os.path import basename
 from time import localtime, strftime
 from logging.handlers import RotatingFileHandler
 
-from config.config import LOG_NAME, LOGS, \
+from constants import LOG_NAME, LOGS, \
                           OLD_LOGS, LOG_FILE, \
                           MAX_LOG_SIZE, LOG_BACKUP_COUNT
 
@@ -36,8 +37,8 @@ def create_logger(logname, logfile, loglevel=logging.INFO):
     logger = logging.getLogger(logname)
     # levels: DEBUG, INFO, WARNING, ERROR, CRITICAL
     logger.setLevel(loglevel)
-    fh = CompactRotatingFileHandler(logfile, maxBytes=LOG_SIZE,
-                                    backupCount=BACKUP_COUNT)
+    fh = CompactRotatingFileHandler(logfile, maxBytes=MAX_LOG_SIZE,
+                                    backupCount=LOG_BACKUP_COUNT)
     fh.setFormatter(FORMATTER)
     logger.addHandler(fh)
     logger.addHandler(CH)

@@ -1,48 +1,97 @@
+#-*- coding: UTF-8 -*-
 import re
 import requests
 from bs4 import BeautifulSoup
 
 import constants
+from page import Page
+from logger import dlogger as logger
 
-class DiaryPage(userPage):
-    def __init__(self, url):
+class DiaryPage(Page):
 
-
-    def get_notebook_name(self):
+    def get_notebook_id_name(self):
         # Get notebook name
-        line = get_string(REG_NOTEBOOK_NAME_L, self.content)
-        if not line:
-            logger.info("Get notebook name line error, url is " + self.url)
-            return False
+        notebook_info = self.soup.find('a', class_='add')
+        try:
+            notebook_name = notebook_info.string
+            notebook_url = notebook_info['href']
+            #/notebook/549997
+            notebook_id = notebook_url[10:]
+            logger.info("Get notebook id " + notebook_id)
+            logger.info("Get notebook name " + notebook_name)
+        except:
+            logger.error("Get notebook id and name error, url is " + self.url)
+            return ()
 
-        notebook_name, num = re.subn(HTML_LABLE, '', line[0])
-
-        return notebook_name
+        return notebook_id, notebook_name
 
     def get_diary_body(self):
         # Get diary create time, content and image if exist
-        body = soup.find('div', attrs={'class':'body body-no-icon'})
+        body = self.soup.find('div', attrs={'class':'body body-no-icon'})
 
         try:
             # Find create time use div and class
-            time = body.find('div', class_='title').string.strip()
+            time = body.div.string.strip()
+            logger.info("Get diary create time " + time)
 
             # Find image and content
-            temp = body.find('pre', class_='content').string
-            if (imge = temp.find('img')):
-                img_url = imge['src']
-                ret = request.get(img_url)
-                if ret != 200
-                    logger.info("Get imge error, url is " + img_url)
-                    return False
+            image = body.pre.img
+            if image:
+                img_url = image['src']
+                logger.info("Get image url " + img_url)
+                ret = requests.get(img_url)
+                if ret.status_code != 200:
+                    logger.error("Get image error, url is " + img_url)
+                    return ()
                 img = ret.content
-                content = temp.contents[1]
-            else
+                content = body.pre.contents[1]
+            else:
+                img_url = None
                 img = None
-                content = temp.contents[0]
+                content = body.pre.string
         except:
-            logger.info("Get create time, content and image error, url is " + self.url)
+            logger.error("Get create time, content and image error, url is " + self.url)
+            return ()
+
+        return time, content, img, img_url
+
+    def get_diary_date(self):
+
+        try:
+            date_info = self.soup.find('div', attrs={'class':'sidebar-item title-date'})
+            month_day = date_info.contents[0].strip()
+            logger.info("Get month_day " + month_day)
+            year = date_info.span.string
+            logger.info("Get year " + year)
+        except:
+            logger.error("Get diary date error, url is " + self.url)
             return False
 
-        return time, content, img
+        date = month_day+year
+        return date
+
+    def get_comments(self):
+       # Get comments
+        comments = []
+        comments_info = self.soup.find_all('div', class_='comment')
+        if not comments_info:
+            logger.info("The comments info is null")
+            return comments
+
+        try:
+            for comment in comments_info:
+                who = comment.a['href'][8:]
+                time = comment.div.div.contents[2].strip()
+                comment_body = comment.pre.encode("utf-8")
+                logger.info("Get comment |" + who + " | " + time)
+                comment_list = (who, time, comment_body)
+                comments.append(comment_list)
+        except:
+            logger.error("Get comments error, url is " + self.url)
+            return False
+
+        return comments
+
+
+
 

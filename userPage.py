@@ -1,58 +1,86 @@
+#-*- coding: UTF-8 -*-
+
 import re
 import requests
 
 import constants
+from page import Page
+from logger import dlogger as logger
 
-class UserPage(userPage):
-    def __init__(self, url):
-
+class UserPage(Page):
 
     def get_joindate(self):
         # Get user join date
-        line = get_string(REG_JOINDATE_L, self.content)
-        if not line:
-            logger.info("Get join date line error, url is " + self.url)
+        user_info = self.soup.find('div', attrs={'class':'sidebar-item user-info'})
+        if not user_info:
+            logger.error("Get user info error, url is " + self.url)
             return False
 
-        temp = get_string(REG_JOINDATE, self.content)
-        if not temp:
-            logger.info("Get join date error, url is " + self.url)
+        # 2013-08-16 加入
+        try:
+            joindate = user_info.p.string[:10]
+            logger.info("Get join date " + joindate)
+        except:
+            logger.error("Get join date error, url is " + self.url)
             return False
-
-        joindate = temp[0]
 
         return joindate
 
     def get_description(self):
         # Get user description
-        line = get_string(REG_DESCRIPTION_L, self.content)
-        if not line:
-            logger.info("Get description line error, url is " + self.url)
+        user_info = self.soup.find('div', attrs={'class':'sidebar-item user-info'})
+        if not user_info:
+            logger.error("Get user info error, url is " + self.url)
             return False
 
-        description = re.subn(HTML_LABLE, '', line)
+        description = user_info.pre.string
+        logger.info("Get user description " + str(description))
 
         return description
 
     def get_icon_img(self):
         # Get use icon image
-        line = get_string(REG_ICON_IMG_L, self.content)
-        if not line:
-            logger.info("Get icon image line error, url is " + self.url)
-            return False
+        icon_img_info = self.soup.find('img', class_='bigicon')
+        if not icon_img_info:
+            logger.error("Get icon image line error, url is " + self.url)
+            return ()
 
         try:
-            icon_img_url = line[0].splite('"')[3]
+            icon_img_url = icon_img_info['src']
         except:
-            logger.info("Get icon image url error, line is " + line[0])
-            return False
+            logger.error("Get icon image url error, info is " + icon_img_info)
+            return ()
+        logger.info("Get icon image url " + icon_img_url)
 
         ret = requests.get(icon_img_url)
         if ret.status_code != 200:
-            logger.info("Get icon image request error, url is " + icon_img_url)
-            return False
+            logger.error("Get icon image request error, url is " + icon_img_url)
+            return ()
 
         icon_img = ret.content
 
-        return icon_img
+        return icon_img_url, icon_img
+
+    def get_notebooks(self):
+        # Get user notebooks id
+        notebooks = []
+        notebooks_info = self.soup.find_all('div', class_='notebook')
+        if not notebooks_info:
+            logger.info("The notebooks info is null")
+            return notebooks
+
+        try:
+            for notebook in notebooks_info:
+                # /notebook/550953
+                notebook_url = notebook.a['href']
+                notebook = notebook_url[10:]
+                logger.info("Get notebook id " + notebook)
+                notebooks.append(notebook)
+        except:
+            logger.error("Get notebooks error, url is " + self.url)
+            return False
+
+        return notebooks
+
+
 

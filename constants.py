@@ -20,4 +20,6 @@ LOG_FILE        = 'diarySpider.log'
 LOG_BACKUP_COUNT      = 20
 MAX_LOG_SIZE          = 1024 * 1024 * 5
 
+DIARY_URL = 'https://timepill.net/diary/'
+PEOPLE_URL = 'https://timepill.net/people/'
 

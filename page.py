@@ -2,9 +2,10 @@ import re
 import requests
 from bs4 import BeautifulSoup
 
-import constants
+from constants import *
+from logger import dlogger as logger
 
-def get_string(regex, string)
+def get_string(regex, string):
     ret = re.findall(regex, string)
     if ret:
         return ret
@@ -14,62 +15,33 @@ def get_string(regex, string)
 class Page(object):
     def __init__(self, url):
         page = requests.get(url);
+        import pdb
+        pdb.set_trace()
         if page.status_code != 200:
-            logger.info("Get url error, url is " + url)
-            return False
+            logger.error("Get url error, url is " + url)
+            return None
 
         self.soup = BeautifulSoup(page.text)
-        self.content = page.conten;
+        self.content = page.content;
         self.url = url
 
     def get_username_and_id(self):
-        # Get user name id and user name
-        line = get_string(REG_USERNAME_L, self.content)
-        if not line:
-            logger.info("Get username id line error, url is " + self.url)
-            return False
+        # Get user id and user name
+        user_info = self.soup.find('div', attrs={'class':'sidebar-item user-info'})
+        if not user_info:
+            logger.error("Get user info error, url is " + self.url)
+            return ()
 
-        temp = get_string(REG_USERNAMEID, line[0])
-        if not temp:
-            logger.info("Get username id error, url is " + self.url)
-            return False
+        username = user_info.h2.a.string
+        logger.info("Get user name " + username)
+        # '/people/100149027'
+        user_url = user_info.h2.a['href']
+        if not user_url:
+            logger.error("Get user_url error, url is " + self.url)
+            return ()
+        userid = user_url[8:]
+        logger.info("Get user id " + userid)
 
-        username_id = temp[0][1:]
-        username, num = re.subn(HTML_LABLE, '', line[0])
-
-       return username, username_id
-
-    def get_notebookIDs(self):
-        # Get user notebooks id
-        notebookids = []
-        lines = get_string(REG_NOTEBOOKIDS_L, self.content)
-        if not lines:
-            logger.info("Get notebook id lines error, url is " + self.url)
-            return False
-
-        for line in lines:
-            temp = get_string(REG_NOTEBOOKID, line)
-            if not line:
-                logger.info("Get notebook id line error, url is " + self.url)
-                return False
-
-            notebookids.append(temp[0])
-
-        return notebookids
-
-    def get_diary_date(self):
-
-        try:
-            date_html = self.soup.find('div', attrs={'class':'sidebar-item title-date'})
-            month_day = date_html.string.strip()
-            year = date_html.find('span').string
-        except:
-            logger.info("Get diary date error, url is " + self.url)
-            return False
-
-        date = year+month_day
-        return date
-
-
+        return username, userid
 
 
