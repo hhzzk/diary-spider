@@ -15,15 +15,11 @@ def get_string(regex, string):
 class Page(object):
     def __init__(self, url):
         page = requests.get(url);
-        import pdb
-        pdb.set_trace()
-        if page.status_code != 200:
-            logger.error("Get url error, url is " + url)
-            return None
 
         self.soup = BeautifulSoup(page.text)
         self.content = page.content;
         self.url = url
+        self.status_code = page.status_code
 
     def get_username_and_id(self):
         # Get user id and user name

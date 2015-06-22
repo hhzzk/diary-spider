@@ -14,7 +14,7 @@ class UserPage(Page):
         user_info = self.soup.find('div', attrs={'class':'sidebar-item user-info'})
         if not user_info:
             logger.error("Get user info error, url is " + self.url)
-            return False
+            return None
 
         # 2013-08-16 加入
         try:
@@ -22,19 +22,23 @@ class UserPage(Page):
             logger.info("Get join date " + joindate)
         except:
             logger.error("Get join date error, url is " + self.url)
-            return False
+            return None
 
         return joindate
 
     def get_description(self):
         # Get user description
+        description = None
         user_info = self.soup.find('div', attrs={'class':'sidebar-item user-info'})
         if not user_info:
             logger.error("Get user info error, url is " + self.url)
-            return False
+            return None
 
         description = user_info.pre.string
-        logger.info("Get user description " + str(description))
+        if description:
+            description = description.encode("utf-8")
+            logger.info("Get user description " + description)
+        logger.info("User description is null")
 
         return description
 
@@ -78,7 +82,7 @@ class UserPage(Page):
                 notebooks.append(notebook)
         except:
             logger.error("Get notebooks error, url is " + self.url)
-            return False
+            return ()
 
         return notebooks
 
