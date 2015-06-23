@@ -13,6 +13,6 @@ DIARY_URL = 'https://timepill.net/diary/'
 PEOPLE_URL = 'https://timepill.net/people/'
 
 ERROR_MAX = 100
-user_min = 10
+user_min = 13
 user_mid = 25050
 user_mid2 = 100022210

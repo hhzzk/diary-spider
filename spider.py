@@ -23,10 +23,8 @@ coll_diary = db_diarySpider['coll_diary']
 
 
 def userSpider():
-    import pdb
-    pdb.set_trace()
-    #user_no = user_min
-    user_no = 13
+    global user_error_count
+    user_no = user_min
     while 1 :
         if user_no < user_mid2 and user_no > user_mid:
             user_no = user_mid2
@@ -47,7 +45,7 @@ def userSpider():
             user_url = PEOPLE_URL + str(user_no)
             user = UserPage(user_url)
             if user.status_code != 200:
-                logger.error("Get url error, url is " + url)
+                logger.error("Get url error, url is " + user_url)
                 user_no = user_no + 1
                 user_error_count = user_error_count + 1
                 randomSleep()
@@ -72,14 +70,14 @@ def userSpider():
                     }
             coll_user.insert(post)
 
-            user_no = user_no + 1
             user_error_count = 0
 
         except:
             logger.error("Get user information error, user number is " + str(user_no))
             user_error_count = user_error_count + 1
-            user_no = user_no + 1
-            randomSleep()
+
+        user_no = user_no + 1
+        randomSleep()
 
 def diarySpider():
     diary_no = 8792545
