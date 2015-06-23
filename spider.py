@@ -6,9 +6,10 @@ from base64 import b64encode, b64decode
 
 from diaryPage import DiaryPage
 from userPage import UserPage
+from page import get_newest_diary_no
+from logger import dlogger as logger
 from constants import DIARY_URL, PEOPLE_URL, ERROR_MAX, \
                       user_min, user_mid, user_mid2
-from logger import dlogger as logger
 
 user_error_count = 0
 
@@ -89,7 +90,7 @@ def diarySpider():
     while 1:
 
         if coll_diary.find_one({"diaryid" : str(diary_no)}):
-            user_no = user_no + 1
+            diary_no = diary_no + 1
             continue
 
         diary_url = DIARY_URL + str(diary_no)
@@ -108,8 +109,8 @@ def diarySpider():
 
                 post = {"diaryid"      : str(diary_no), \
                         "notebookid"   : notebook_id, \
-                        "notebookname" : b64encode(notebook_name), \
-                        "context"      : b64encode(context), \
+                        "notebookname" : notebook_name, \
+                        "context"      : context, \
                         "img"          : img, \
                         "img_url"      : img_url, \
                         "userid"       : userid, \
@@ -126,14 +127,14 @@ def diarySpider():
                 logger.error("Get diary information error, diary number is " + str(diary_no))
                 diary_no = diary_no + 1
 
-        else if diary.status_code == 403:
+        elif diary.status_code == 403:
             logger.error("Get url error, status code is 403, url is " + diary_url)
             if diary_no <= newest_diary_no:
                 diary_no = diary_no + 1
             else:
                 newest_diary_no = get_newest_diary_no()
 
-        randomSleep()
+        #randomSleep()
 
 def start():
     #userSpider()

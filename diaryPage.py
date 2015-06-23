@@ -13,7 +13,7 @@ class DiaryPage(Page):
         # Get notebook name
         notebook_info = self.soup.find('a', class_='add')
         try:
-            notebook_name = notebook_info.string
+            notebook_name = notebook_info.contents[0]
             notebook_url = notebook_info['href']
             #/notebook/549997
             notebook_id = notebook_url[10:]
@@ -49,6 +49,8 @@ class DiaryPage(Page):
                 img_url = None
                 img = None
                 content = body.pre.string
+            logger.info("Get diary content " + content)
+
         except:
             logger.error("Get create time, content and image error, url is " + self.url)
             return ()
@@ -60,14 +62,13 @@ class DiaryPage(Page):
         try:
             date_info = self.soup.find('div', attrs={'class':'sidebar-item title-date'})
             month_day = date_info.contents[0].strip()
-            logger.info("Get month_day " + month_day)
             year = date_info.span.string
-            logger.info("Get year " + year)
         except:
             logger.error("Get diary date error, url is " + self.url)
             return False
 
         date = month_day+year
+        logger.info("Get date " + date)
         return date
 
     def get_comments(self):

@@ -86,5 +86,3 @@ class UserPage(Page):
 
         return notebooks
 
-
-
