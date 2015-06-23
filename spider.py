@@ -1,14 +1,14 @@
 #-*- coding: UTF-8 -*-
 from random import randint
 from time import sleep
+from pymongo import MongoClient
+from base64 import b64encode, b64decode
 
 from diaryPage import DiaryPage
 from userPage import UserPage
 from constants import DIARY_URL, PEOPLE_URL, ERROR_MAX, \
                       user_min, user_mid, user_mid2
 from logger import dlogger as logger
-from pymongo import MongoClient
-from base64 import b64encode, b64decode
 
 user_error_count = 0
 
@@ -70,6 +70,7 @@ def userSpider():
                     }
             coll_user.insert(post)
 
+            logger.error("Get user information successfully, user number is " + str(user_no))
             user_error_count = 0
 
         except:
@@ -80,19 +81,63 @@ def userSpider():
         randomSleep()
 
 def diarySpider():
-    diary_no = 8792545
-    diary_url = DIARY_URL + str(diary_no)
-    diary = DiaryPage(diary_url)
+    #diary_no = diary_min
+    import pdb
+    pdb.set_trace()
+    diary_no = 50
+    newest_diary_no = get_newest_diary_no()
+    while 1:
 
-    notebook_id, notebook_name = diary.get_notebook_id_name()
-    time, content, img, img_url = diary.get_diary_body()
-    username, userid = diary.get_username_and_id()
-    date = diary.get_diary_date()
-    comments = diary.get_comments()
+        if coll_diary.find_one({"diaryid" : str(diary_no)}):
+            user_no = user_no + 1
+            continue
+
+        diary_url = DIARY_URL + str(diary_no)
+        diary = DiaryPage(diary_url)
+        if diary.status_code == 200:
+            try:
+                notebook_id, notebook_name = diary.get_notebook_id_name()
+                time, content, img, img_url = diary.get_diary_body()
+                if img:
+                    img = b64encode(img)
+                if img_url:
+                    img_url = b64encode(img_url)
+                username, userid = diary.get_username_and_id()
+                date = diary.get_diary_date()
+                comments = diary.get_comments()
+
+                post = {"diaryid"      : str(diary_no), \
+                        "notebookid"   : notebook_id, \
+                        "notebookname" : b64encode(notebook_name), \
+                        "context"      : b64encode(context), \
+                        "img"          : img, \
+                        "img_url"      : img_url, \
+                        "userid"       : userid, \
+                        "username"     : username, \
+                        "create_date"  : date, \
+                        "create_time"  : time, \
+                        "comments"     : comments
+                        }
+                coll_diary.insert(post)
+                logger.info("Get diary information successfully, diary number is " + str(diary_no))
+                diary_no = diary_no + 1
+
+            except:
+                logger.error("Get diary information error, diary number is " + str(diary_no))
+                diary_no = diary_no + 1
+
+        else if diary.status_code == 403:
+            logger.error("Get url error, status code is 403, url is " + diary_url)
+            if diary_no <= newest_diary_no:
+                diary_no = diary_no + 1
+            else:
+                newest_diary_no = get_newest_diary_no()
+
+        randomSleep()
 
 def start():
-    userSpider()
-    #diarySpider()
+    #userSpider()
+    diarySpider()
 
 if __name__ == '__main__':
     start()

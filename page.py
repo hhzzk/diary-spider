@@ -5,12 +5,22 @@ from bs4 import BeautifulSoup
 from constants import *
 from logger import dlogger as logger
 
-def get_string(regex, string):
-    ret = re.findall(regex, string)
-    if ret:
-        return ret
+def get_newest_diary_no():
+    home = requests.get(HOME_URL)
+    if home.status_code != 200:
+        logger.error("Get home page error!!")
+        return 0
+    soup = BeautifulSoup(home.text)
+    newest_info = soup.find('div', class_="bottom")
+    # /diary/8797403
+    newest_url = newest_info.a['href']
+    if newest_url:
+        newest = newest_url[7:]
+        logger.info("Get newest diary no " + newest)
+        return int(newest)
 
-    return None
+    return 0
+
 
 class Page(object):
     def __init__(self, url):

@@ -11,8 +11,11 @@ MAX_LOG_SIZE          = 1024 * 1024 * 5
 
 DIARY_URL = 'https://timepill.net/diary/'
 PEOPLE_URL = 'https://timepill.net/people/'
+HOME_URL = 'http://www.timepill.net/'
 
 ERROR_MAX = 100
 user_min = 13
 user_mid = 25050
 user_mid2 = 100022210
+
+diary_min = 30
