@@ -74,7 +74,7 @@ def userSpider():
                     }
             coll_user.insert(post)
 
-            logger.error("Get user information successfully, user number is " + str(user_no))
+            logger.info("Get user information successfully, user number is " + str(user_no))
             user_error_count = 0
 
         except:
