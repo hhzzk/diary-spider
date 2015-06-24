@@ -110,7 +110,7 @@ def diarySpider():
                 post = {"diaryid"      : str(diary_no), \
                         "notebookid"   : notebook_id, \
                         "notebookname" : notebook_name, \
-                        "context"      : context, \
+                        "content"      : content, \
                         "img"          : img, \
                         "img_url"      : img_url, \
                         "userid"       : userid, \
@@ -127,14 +127,14 @@ def diarySpider():
                 logger.error("Get diary information error, diary number is " + str(diary_no))
                 diary_no = diary_no + 1
 
-        elif diary.status_code == 403:
+        elif diary.status_code == 404:
             logger.error("Get url error, status code is 403, url is " + diary_url)
             if diary_no <= newest_diary_no:
                 diary_no = diary_no + 1
             else:
                 newest_diary_no = get_newest_diary_no()
 
-        #randomSleep()
+        randomSleep()
 
 def start():
     #userSpider()
