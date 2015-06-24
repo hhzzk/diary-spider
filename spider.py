@@ -3,20 +3,23 @@ from random import randint
 from time import sleep
 from pymongo import MongoClient
 from base64 import b64encode, b64decode
+from  multiprocessing import Process
 
 from diaryPage import DiaryPage
 from userPage import UserPage
 from page import get_newest_diary_no
 from logger import dlogger as logger
 from constants import DIARY_URL, PEOPLE_URL, ERROR_MAX, \
-                      user_min, user_mid, user_mid2
+                      user_min, user_mid, user_mid2, \
+                      HAVE_NOT_OUTDATE, current_diary_no, \
+                      diary_min
 
 user_error_count = 0
 
-def randomSleep():
-    sleep(randint(40,100))
+def randomSleep(min, max):
+    sleep(randint(min, max))
 
-#database init
+# Database init
 client = MongoClient('localhost', 27017)
 db_diarySpider = client.diarySpider
 coll_user = db_diarySpider['coll_user']
@@ -49,7 +52,7 @@ def userSpider():
                 logger.error("Get url error, url is " + user_url)
                 user_no = user_no + 1
                 user_error_count = user_error_count + 1
-                randomSleep()
+                randomSleep(40, 100)
                 continue
 
             username, userid = user.get_username_and_id()
@@ -79,47 +82,68 @@ def userSpider():
             user_error_count = user_error_count + 1
 
         user_no = user_no + 1
-        randomSleep()
+        randomSleep(40, 100)
 
-def diarySpider():
-    #diary_no = diary_min
-    import pdb
-    pdb.set_trace()
-    diary_no = 50
+def diary_into_database(diary_no, diary):
+    time, content, img, img_url = diary.get_diary_body()
+    if content == HAVE_NOT_OUTDATE:
+        post = {"diaryid" : str(diary_no), \
+                "status"  : str(1)
+               }
+        coll_diary.insert(post)
+        return True
+
+    if img:
+        img = b64encode(img)
+    if img_url:
+        img_url = b64encode(img_url)
+    notebook_id, notebook_name = diary.get_notebook_id_name()
+    username, userid = diary.get_username_and_id()
+    date = diary.get_diary_date()
+    comments = diary.get_comments()
+
+    post = {"diaryid"      : str(diary_no), \
+            "notebookid"   : notebook_id, \
+            "notebookname" : notebook_name, \
+            "content"      : content, \
+            "img"          : img, \
+            "img_url"      : img_url, \
+            "userid"       : userid, \
+            "username"     : username, \
+            "create_date"  : date, \
+            "create_time"  : time, \
+            "comments"     : comments, \
+            "status"       : str(0)
+            }
+    coll_diary.insert(post)
+
+    return True
+
+def outdateDiarySpider():
+    # Used to get the outdate diary
+    diary_no = diary_min
     newest_diary_no = get_newest_diary_no()
     while 1:
 
-        if coll_diary.find_one({"diaryid" : str(diary_no)}):
-            diary_no = diary_no + 1
-            continue
+        get = coll_diary.find_one({"diaryid" : str(diary_no)})
+        if get:
+            status = get["status"]
+            # outdate
+            if status == '1':
+                coll_diary.remove({"diaryid" : str(diary_no)})
+                randomSleep(30, 60)
+                continue
+            # not find or normal
+            elif status == '2' or status == '0':
+                diary_no = diary_no + 1
+                randomSleep(30, 60)
+                continue
 
         diary_url = DIARY_URL + str(diary_no)
         diary = DiaryPage(diary_url)
         if diary.status_code == 200:
             try:
-                notebook_id, notebook_name = diary.get_notebook_id_name()
-                time, content, img, img_url = diary.get_diary_body()
-                if img:
-                    img = b64encode(img)
-                if img_url:
-                    img_url = b64encode(img_url)
-                username, userid = diary.get_username_and_id()
-                date = diary.get_diary_date()
-                comments = diary.get_comments()
-
-                post = {"diaryid"      : str(diary_no), \
-                        "notebookid"   : notebook_id, \
-                        "notebookname" : notebook_name, \
-                        "content"      : content, \
-                        "img"          : img, \
-                        "img_url"      : img_url, \
-                        "userid"       : userid, \
-                        "username"     : username, \
-                        "create_date"  : date, \
-                        "create_time"  : time, \
-                        "comments"     : comments
-                        }
-                coll_diary.insert(post)
+                diary_into_database(diary_no, diary)
                 logger.info("Get diary information successfully, diary number is " + str(diary_no))
                 diary_no = diary_no + 1
 
@@ -128,17 +152,56 @@ def diarySpider():
                 diary_no = diary_no + 1
 
         elif diary.status_code == 404:
-            logger.error("Get url error, status code is 403, url is " + diary_url)
+            post = {"diaryid" : str(diary_no), \
+                    "status"  : str(2)
+                   }
+            coll_diary.insert(post)
+            diary_no = diary_no + 1
+
+            logger.error("Get url error, status code is 404, url is " + diary_url)
+            if diary_no > newest_diary_no:
+                newest_diary_no = get_newest_diary_no()
+                diary_no = diary_min
+
+        randomSleep(30, 60)
+
+
+def realtimeDiarySpider():
+    diary_no = current_diary_no
+    newest_diary_no = get_newest_diary_no()
+    while 1:
+
+        diary_url = DIARY_URL + str(diary_no)
+        diary = DiaryPage(diary_url)
+        if diary.status_code == 200:
+            try:
+                diary_into_database(diary_no, diary)
+                logger.info("Get diary information successfully, diary number is " + str(diary_no))
+                diary_no = diary_no + 1
+
+            except:
+                logger.error("Get diary information error, diary number is " + str(diary_no))
+                diary_no = diary_no + 1
+
+        elif diary.status_code == 404:
+            post = {"diaryid" : str(diary_no), \
+                    "status"  : str(2)
+                   }
+            coll_diary.insert(post)
+
+            logger.error("Get url error, status code is 404, url is " + diary_url)
             if diary_no <= newest_diary_no:
                 diary_no = diary_no + 1
             else:
                 newest_diary_no = get_newest_diary_no()
 
-        randomSleep()
+        randomSleep(10, 20)
 
 def start():
-    #userSpider()
-    diarySpider()
+    # Create subthread and run
+    Process(target=userSpider, args=()).start()
+    Process(target=realtimeDiarySpider, args=()).start()
+    Process(target=outdateDiarySpider, args=()).start()
 
 if __name__ == '__main__':
     start()

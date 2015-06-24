@@ -36,7 +36,7 @@ class DiaryPage(Page):
 
             # Find image and content
             image = body.pre.img
-            if image:
+            if image and image['class'] == 'thumbnail':
                 img_url = image['src']
                 logger.info("Get image url " + img_url)
                 ret = requests.get(img_url)
@@ -44,12 +44,11 @@ class DiaryPage(Page):
                     logger.error("Get image error, url is " + img_url)
                     return ()
                 img = ret.content
-                content = body.pre.contents[1]
             else:
                 img_url = None
                 img = None
-                content = body.pre.string
-            logger.info("Get diary content " + content)
+            content = body.pre.encode('utf-8')
+            #logger.info("Get diary content " + content)
 
         except:
             logger.error("Get create time, content and image error, url is " + self.url)
