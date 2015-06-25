@@ -171,6 +171,10 @@ def realtimeDiarySpider():
     newest_diary_no = get_newest_diary_no()
     while 1:
 
+        if coll_user.find_one({"diaryid" : str(diary_no)}):
+            diary_no = diary_no + 1
+            continue
+
         diary_url = DIARY_URL + str(diary_no)
         diary = DiaryPage(diary_url)
         if diary.status_code == 200:
