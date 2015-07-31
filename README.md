@@ -1,9 +1,9 @@
 ####Introduction
-<pre>
+
 A spider to get user information and diary from timepill.net
 Totally 3 threads, userSpider used to get user information, outedateDiarySpider used to get outedate diary and realtimeDiarySpider used to get new diary 
 This project was written for learning python
-</pre>
+
 ***
 
 ####Python lib used in this project:
