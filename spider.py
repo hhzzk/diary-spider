@@ -119,52 +119,6 @@ def diary_into_database(diary_no, diary):
 
     return True
 
-def outdateDiarySpider():
-    # Used to get the outdate diary
-    diary_no = diary_min
-    newest_diary_no = get_newest_diary_no()
-    while 1:
-
-        get = coll_diary.find_one({"diaryid" : str(diary_no)})
-        if get:
-            status = get["status"]
-            # outdate
-            if status == '1':
-                coll_diary.remove({"diaryid" : str(diary_no)})
-                randomSleep(30, 60)
-                continue
-            # not find or normal
-            elif status == '2' or status == '0':
-                diary_no = diary_no + 1
-                randomSleep(30, 60)
-                continue
-
-        diary_url = DIARY_URL + str(diary_no)
-        diary = DiaryPage(diary_url)
-        if diary.status_code == 200:
-            try:
-                diary_into_database(diary_no, diary)
-                logger.info("Get diary information successfully, diary number is " + str(diary_no))
-                diary_no = diary_no + 1
-
-            except:
-                logger.error("Get diary information error, diary number is " + str(diary_no))
-                diary_no = diary_no + 1
-
-        elif diary.status_code == 404:
-            post = {"diaryid" : str(diary_no), \
-                    "status"  : str(2)
-                   }
-            coll_diary.insert(post)
-            diary_no = diary_no + 1
-
-            logger.error("Get url error, status code is 404, url is " + diary_url)
-            if diary_no > newest_diary_no:
-                newest_diary_no = get_newest_diary_no()
-                diary_no = diary_min
-
-        randomSleep(30, 60)
-
 
 def realtimeDiarySpider():
     diary_no = current_diary_no
@@ -205,7 +159,6 @@ def start():
     # Create subthread and run
     Process(target=userSpider, args=()).start()
     Process(target=realtimeDiarySpider, args=()).start()
-    Process(target=outdateDiarySpider, args=()).start()
 
 if __name__ == '__main__':
     start()
