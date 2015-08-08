@@ -155,6 +155,17 @@ def realtimeDiarySpider():
 
         randomSleep(10, 20)
 
+
+
+def monitor():
+# Monitre home page to find new diary
+   try:
+        home_url = HOME_URL
+        home = Page(home_url)
+        if home.status_code == 200:
+
+
+
 def start():
     # Create subthread and run
     Process(target=userSpider, args=()).start()
