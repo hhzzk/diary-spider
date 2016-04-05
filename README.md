@@ -7,7 +7,7 @@ realtimeDiarySpider used to get new diary <br>
 
 This project was written for learning python
 
-Python lib used in this project:
+Python libs used in this project:
 ----
 * [requests](http://requests-docs-cn.readthedocs.org/zh_CN/latest/index.html)
 * [Beautiful Soup 4](http://www.crummy.com/software/BeautifulSoup/bs4/doc/index.zh.html)
