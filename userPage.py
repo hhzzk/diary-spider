@@ -57,11 +57,17 @@ class UserPage(Page):
         logger.info("Get icon image url " + icon_img_url)
 
         ret = requests.get(icon_img_url)
+        icon_name = icon_img_url.split('/')[-1].split('?')[0]
         if ret.status_code != 200:
             logger.error("Get icon image request error, url is " + icon_img_url)
             return ()
 
         icon_img = ret.content
+        import pdb
+        pdb.set_trace()
+        file_object = open(icon_name, 'wb')
+        file_object.write(ret.content)
+        file_object.close( )
 
         return icon_img_url, icon_img
 

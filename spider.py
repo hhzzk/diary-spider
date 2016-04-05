@@ -42,6 +42,7 @@ def userSpider():
             continue
 
         if coll_user.find_one({"userid" : str(user_no)}):
+            logger.info("This user exist, user number is " + str(user_no))
             user_no = user_no + 1
             continue
 
@@ -157,19 +158,12 @@ def realtimeDiarySpider():
 
 
 
-def monitor():
-# Monitre home page to find new diary
-   try:
-        home_url = HOME_URL
-        home = Page(home_url)
-        if home.status_code == 200:
-
-
 
 def start():
     # Create subthread and run
-    Process(target=userSpider, args=()).start()
-    Process(target=realtimeDiarySpider, args=()).start()
+    userSpider()
+    #Process(target=userSpider, args=()).start()
+    #Process(target=realtimeDiarySpider, args=()).start()
 
 if __name__ == '__main__':
     start()
