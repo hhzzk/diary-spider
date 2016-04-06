@@ -1,2 +1,3 @@
 *.pyc
 diarySpider.log
+qiniuConf.py
