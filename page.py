@@ -26,7 +26,7 @@ class Page(object):
     def __init__(self, url):
         page = requests.get(url);
 
-        self.soup = BeautifulSoup(page.text)
+        self.soup = BeautifulSoup(page.text, "html5lib")
         self.content = page.content;
         self.url = url
         self.status_code = page.status_code

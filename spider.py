@@ -1,10 +1,14 @@
 #-*- coding: UTF-8 -*-
 from random import randint
 from time import sleep
+import json 
+import os
 from pymongo import MongoClient
 from base64 import b64encode, b64decode
 from  multiprocessing import Process
 
+
+from qiniuApi import push_file
 from diaryPage import DiaryPage
 from userPage import UserPage
 from page import get_newest_diary_no
@@ -56,12 +60,12 @@ def userSpider():
                 randomSleep(40, 100)
                 continue
 
+            import pdb
+            pdb.set_trace()
             username, userid = user.get_username_and_id()
             joindate = user.get_joindate()
             description = user.get_description()
-            if description:
-               description =  b64encode(description)
-            icon_img_url, icon_img = user.get_icon_img()
+            icon_img = user.get_icon_img()
             notebooks = user.get_notebooks()
 
             # Insert into database
@@ -69,10 +73,15 @@ def userSpider():
                     "userid"       : userid, \
                     "joindate"     : joindate, \
                     "description"  : description, \
-                    "icon_img_url" : b64encode(icon_img_url), \
-                    "icon_img"     : b64encode(icon_img), \
+                    "icon_img"     : icon_img, \
                     "notebooks"    : notebooks
                     }
+
+            user_file = "user_" + str(user_no)
+            json.dump(post, open(user_file, 'w'), ensure_ascii=False, encoding="utf8")
+            push_file(user_file)
+            os.remove(user_file)
+
             coll_user.insert(post)
 
             logger.info("Get user information successfully, user number is " + str(user_no))

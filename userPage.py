@@ -40,7 +40,6 @@ class UserPage(Page):
         if description:
             description = description.encode("utf-8")
             logger.info("Get user description " + description)
-        logger.info("User description is null")
 
         return description
 
@@ -65,8 +64,7 @@ class UserPage(Page):
 
         icon_name = icon_img_url.split('/')[-1].split('?')[0]
         icon_name = 'icon_' + icon_name
-        import pdb
-        pdb.set_trace()
+
         file_object = open(icon_name, 'wb')
         file_object.write(ret.content)
         file_object.close( )
