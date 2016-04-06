@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # flake8: noqa
 
-from qiniu import Auth, put_file 
+from qiniu import Auth, put_file
 import qiniu.config
 
 from qiniuConf import access_key, secret_key, bucket_name

@@ -1,7 +1,8 @@
 #-*- coding: UTF-8 -*-
 from random import randint
 from time import sleep
-import json 
+import json
+import io
 import os
 from pymongo import MongoClient
 from base64 import b64encode, b64decode
@@ -60,8 +61,6 @@ def userSpider():
                 randomSleep(40, 100)
                 continue
 
-            import pdb
-            pdb.set_trace()
             username, userid = user.get_username_and_id()
             joindate = user.get_joindate()
             description = user.get_description()
@@ -78,7 +77,10 @@ def userSpider():
                     }
 
             user_file = "user_" + str(user_no)
-            json.dump(post, open(user_file, 'w'), ensure_ascii=False, encoding="utf8")
+            with io.open(user_file, 'w', encoding='utf8') as json_file:
+                post_string = json.dumps(post, ensure_ascii=False, encoding='utf8')
+                json_file.write(unicode(post_string))
+
             push_file(user_file)
             os.remove(user_file)
 
