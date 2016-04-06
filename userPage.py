@@ -44,7 +44,7 @@ class UserPage(Page):
         return description
 
     def get_icon_img(self):
-        # Get use icon image
+        # Get user icon image
         icon_img_info = self.soup.find('img', class_='bigicon')
         if not icon_img_info:
             logger.error("Get icon image line error, url is " + self.url)
@@ -65,9 +65,8 @@ class UserPage(Page):
         icon_name = icon_img_url.split('/')[-1].split('?')[0]
         icon_name = 'icon_' + icon_name
 
-        file_object = open(icon_name, 'wb')
-        file_object.write(ret.content)
-        file_object.close( )
+        with open(icon_name, 'wb') as file_object:
+            file_object.write(ret.content)
 
         ret = push_file(icon_name)
         os.remove(icon_name)

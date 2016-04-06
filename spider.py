@@ -97,7 +97,9 @@ def userSpider():
         randomSleep(40, 100)
 
 def diary_into_database(diary_no, diary):
-    time, content, img, img_url = diary.get_diary_body()
+    import pdb
+    pdb.set_trace()
+    time, content, img_url = diary.get_diary_body()
     if content == HAVE_NOT_OUTDATE:
         post = {"diaryid" : str(diary_no), \
                 "status"  : str(1)
@@ -105,10 +107,22 @@ def diary_into_database(diary_no, diary):
         coll_diary.insert(post)
         return True
 
-    if img:
-        img = b64encode(img)
+    img_name = None
     if img_url:
-        img_url = b64encode(img_url)
+        ret = requests.get(img_url)
+        if ret.status_code == 200:
+            img_name = 'diary_img_' + str(diary_no) + '_' + img_url.split('/')[-1]
+            with open(img_name, 'wb') as file_object:
+                file_object.write(ret.content)
+
+            ret = push_file(img_name)
+            os.remove(img_name)
+
+            if ret:
+                logger.info("Push dairy image successfully, image is " + img_name)
+        else:
+            logger.error("Get image error, url is " + img_url)
+
     notebook_id, notebook_name = diary.get_notebook_id_name()
     username, userid = diary.get_username_and_id()
     date = diary.get_diary_date()
@@ -118,8 +132,7 @@ def diary_into_database(diary_no, diary):
             "notebookid"   : notebook_id, \
             "notebookname" : notebook_name, \
             "content"      : content, \
-            "img"          : img, \
-            "img_url"      : img_url, \
+            "img"          : img_name, \
             "userid"       : userid, \
             "username"     : username, \
             "create_date"  : date, \
@@ -127,6 +140,14 @@ def diary_into_database(diary_no, diary):
             "comments"     : comments, \
             "status"       : str(0)
             }
+
+    diary_file = "diary_" + str(diary_no)
+    with io.open(diary_file, 'w', encoding='utf8') as json_file:
+        post_string = json.dumps(post, ensure_ascii=False, encoding='utf8')
+        json_file.write(unicode(post_string))
+
+    push_file(diary_file)
+    os.remove(diary_file)
     coll_diary.insert(post)
 
     return True
@@ -165,14 +186,14 @@ def realtimeDiarySpider():
             else:
                 newest_diary_no = get_newest_diary_no()
 
-        randomSleep(10, 20)
+        randomSleep(30, 100)
 
 
 
 
 def start():
     # Create subthread and run
-    userSpider()
+    realtimeDiarySpider()
     #Process(target=userSpider, args=()).start()
     #Process(target=realtimeDiarySpider, args=()).start()
 

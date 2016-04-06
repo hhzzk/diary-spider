@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 
 import constants
 from page import Page
+from qiniuApi import push_file
 from logger import dlogger as logger
 
 class DiaryPage(Page):
@@ -39,14 +40,9 @@ class DiaryPage(Page):
             if image and image['class'] == 'thumbnail':
                 img_url = image['src']
                 logger.info("Get image url " + img_url)
-                ret = requests.get(img_url)
-                if ret.status_code != 200:
-                    logger.error("Get image error, url is " + img_url)
-                    return ()
-                img = ret.content
+
             else:
                 img_url = None
-                img = None
             content = body.pre.encode('utf-8')
             #logger.info("Get diary content " + content)
 
@@ -54,7 +50,7 @@ class DiaryPage(Page):
             logger.error("Get create time, content and image error, url is " + self.url)
             return ()
 
-        return time, content, img, img_url
+        return time, content, img_url
 
     def get_diary_date(self):
 
