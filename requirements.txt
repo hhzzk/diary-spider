@@ -1,0 +1,5 @@
+beautifulsoup4==4.4.1
+bs4==0.0.1
+qiniu==7.0.6
+requests==2.2.1
+pymongo==3.2.2
