@@ -1,10 +1,12 @@
 #-*- coding: UTF-8 -*-
 
 import re
+import os
 import requests
 
 import constants
 from page import Page
+from qiniuApi import push_file
 from logger import dlogger as logger
 
 class UserPage(Page):
@@ -57,19 +59,27 @@ class UserPage(Page):
         logger.info("Get icon image url " + icon_img_url)
 
         ret = requests.get(icon_img_url)
-        icon_name = icon_img_url.split('/')[-1].split('?')[0]
         if ret.status_code != 200:
             logger.error("Get icon image request error, url is " + icon_img_url)
             return ()
 
-        icon_img = ret.content
+        icon_name = icon_img_url.split('/')[-1].split('?')[0]
+        icon_name = 'icon_' + icon_name
         import pdb
         pdb.set_trace()
         file_object = open(icon_name, 'wb')
         file_object.write(ret.content)
         file_object.close( )
 
-        return icon_img_url, icon_img
+        ret = push_file(icon_name)
+        os.remove(icon_name)
+
+        if ret:
+            logger.info("Push icon image successfully, icon is " + icon_name)
+            return icon_name
+
+        logger.error("Push icon image error, icon is " + icon_name)
+        return None
 
     def get_notebooks(self):
         # Get user notebooks id

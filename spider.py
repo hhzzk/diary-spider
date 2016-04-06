@@ -34,7 +34,7 @@ def userSpider():
             user_no = user_mid2
             continue
 
-        # If too much error, then sleep 1 hour
+        # If too mang error, sleep 1 hour
         if user_error_count > ERROR_MAX:
             logger.warning("Error count over the max value!!!")
             user_no = user_no - ERROR_MAX
