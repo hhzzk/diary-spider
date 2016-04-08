@@ -37,7 +37,7 @@ class DiaryPage(Page):
 
             # Find image and content
             image = body.pre.img
-            if image and image['class'] == 'thumbnail':
+            if image and 'thumbnail' in image['class'] :
                 img_url = image['src']
                 logger.info("Get image url " + img_url)
 
@@ -47,7 +47,8 @@ class DiaryPage(Page):
             #logger.info("Get diary content " + content)
 
         except:
-            logger.error("Get create time, content and image error, url is " + self.url)
+            logger.error("Get create time, content and image error, \
+                    url is " + self.url)
             return ()
 
         return time, content, img_url
@@ -55,7 +56,8 @@ class DiaryPage(Page):
     def get_diary_date(self):
 
         try:
-            date_info = self.soup.find('div', attrs={'class':'sidebar-item title-date'})
+            date_info = self.soup.find('div', \
+                    attrs={'class':'sidebar-item title-date'})
             month_day = date_info.contents[0].strip()
             year = date_info.span.string
         except:

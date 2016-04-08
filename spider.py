@@ -1,9 +1,10 @@
 #-*- coding: UTF-8 -*-
-from random import randint
-from time import sleep
-import json
 import io
 import os
+import json
+import requests
+from time import sleep
+from random import randint
 from pymongo import MongoClient
 from base64 import b64encode, b64decode
 from  multiprocessing import Process
@@ -84,7 +85,8 @@ def userSpider():
 
             user_file = "user_" + str(user_no)
             with io.open(user_file, 'w', encoding='utf8') as json_file:
-                post_string = json.dumps(post, ensure_ascii=False, encoding='utf8')
+                post_string = json.dumps(post, ensure_ascii=False, \
+                                         encoding='utf8')
                 json_file.write(unicode(post_string))
 
             push_file(user_file)
@@ -92,11 +94,13 @@ def userSpider():
 
             coll_user.insert(post)
 
-            logger.info("Get user information successfully, user number is " + str(user_no))
+            logger.info("Get user information successfully, \
+                    user number is " + str(user_no))
             user_error_count = 0
 
         except:
-            logger.error("Get user information error, user number is " + str(user_no))
+            logger.error("Get user information error, \
+                    user number is " + str(user_no))
             user_error_count = user_error_count + 1
 
         user_no = user_no + 1
@@ -117,7 +121,8 @@ def diary_into_database(diary_no, diary):
     if img_url:
         ret = requests.get(img_url)
         if ret.status_code == 200:
-            img_name = 'diary_img_' + str(diary_no) + '_' + img_url.split('/')[-1]
+            img_name = 'diary_img_' + str(diary_no) + '_' + \
+                       img_url.split('/')[-1]
             with open(img_name, 'wb') as file_object:
                 file_object.write(ret.content)
 
@@ -125,7 +130,8 @@ def diary_into_database(diary_no, diary):
             os.remove(img_name)
 
             if ret:
-                logger.info("Push dairy image successfully, image is " + img_name)
+                logger.info("Push dairy image successfully, \
+                        image is " + img_name)
         else:
             logger.error("Get image error, url is " + img_url)
 
@@ -158,13 +164,13 @@ def diary_into_database(diary_no, diary):
 
     return True
 
-
 def realtimeDiarySpider():
     diary_no = current_diary_no
     newest_diary_no = get_newest_diary_no()
-    while 1:
 
-        if coll_user.find_one({"diaryid" : str(diary_no)}):
+    while 1:
+        if coll_diary.find_one({"diaryid" : str(diary_no)}):
+            logger.info("This diary is exist, number is " + str(diary_no))
             diary_no = diary_no + 1
             continue
 
@@ -173,11 +179,13 @@ def realtimeDiarySpider():
         if diary.status_code == 200:
             try:
                 diary_into_database(diary_no, diary)
-                logger.info("Get diary information successfully, diary number is " + str(diary_no))
+                logger.info("Get diary information successfully, \
+                        diary number is " + str(diary_no))
                 diary_no = diary_no + 1
 
             except:
-                logger.error("Get diary information error, diary number is " + str(diary_no))
+                logger.error("Get diary information error, \
+                        diary number is " + str(diary_no))
                 diary_no = diary_no + 1
 
         elif diary.status_code == 404:
@@ -186,16 +194,13 @@ def realtimeDiarySpider():
                    }
             coll_diary.insert(post)
 
-            logger.error("Get url error, status code is 404, url is " + diary_url)
+            logger.error("Get url error, url is " + diary_url)
             if diary_no <= newest_diary_no:
                 diary_no = diary_no + 1
             else:
                 newest_diary_no = get_newest_diary_no()
 
-        randomSleep(30, 100)
-
-
-
+        randomSleep(10, 30)
 
 def start():
     # Create subthread and run

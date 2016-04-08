@@ -13,7 +13,8 @@ class UserPage(Page):
 
     def get_joindate(self):
         # Get user join date
-        user_info = self.soup.find('div', attrs={'class':'sidebar-item user-info'})
+        user_info = self.soup.find('div', \
+                attrs={'class':'sidebar-item user-info'})
         if not user_info:
             logger.error("Get user info error, url is " + self.url)
             return None
@@ -31,7 +32,8 @@ class UserPage(Page):
     def get_description(self):
         # Get user description
         description = None
-        user_info = self.soup.find('div', attrs={'class':'sidebar-item user-info'})
+        user_info = self.soup.find('div', \
+                attrs={'class':'sidebar-item user-info'})
         if not user_info:
             logger.error("Get user info error, url is " + self.url)
             return None

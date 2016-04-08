@@ -33,7 +33,8 @@ class Page(object):
 
     def get_username_and_id(self):
         # Get user id and user name
-        user_info = self.soup.find('div', attrs={'class':'sidebar-item user-info'})
+        user_info = self.soup.find('div', \
+                attrs={'class':'sidebar-item user-info'})
         if not user_info:
             logger.error("Get user info error, url is " + self.url)
             return ()
