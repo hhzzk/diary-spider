@@ -55,7 +55,12 @@ def userSpider():
             user_url = PEOPLE_URL + str(user_no)
             user = UserPage(user_url)
             if user.status_code != 200:
+                post = {"userid"       : userid, \
+                        "status"       : str(1)
+                       }
+                coll_user.insert(post)
                 logger.error("Get url error, url is " + user_url)
+
                 user_no = user_no + 1
                 user_error_count = user_error_count + 1
                 randomSleep(40, 100)
@@ -73,7 +78,8 @@ def userSpider():
                     "joindate"     : joindate, \
                     "description"  : description, \
                     "icon_img"     : icon_img, \
-                    "notebooks"    : notebooks
+                    "notebooks"    : notebooks, \
+                    "status"       : str(0)
                     }
 
             user_file = "user_" + str(user_no)
