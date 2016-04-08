@@ -107,8 +107,6 @@ def userSpider():
         randomSleep(40, 100)
 
 def diary_into_database(diary_no, diary):
-    import pdb
-    pdb.set_trace()
     time, content, img_url = diary.get_diary_body()
     if content == HAVE_NOT_OUTDATE:
         post = {"diaryid" : str(diary_no), \
@@ -204,9 +202,8 @@ def realtimeDiarySpider():
 
 def start():
     # Create subthread and run
-    realtimeDiarySpider()
-    #Process(target=userSpider, args=()).start()
-    #Process(target=realtimeDiarySpider, args=()).start()
+    Process(target=userSpider, args=()).start()
+    Process(target=realtimeDiarySpider, args=()).start()
 
 if __name__ == '__main__':
     start()
