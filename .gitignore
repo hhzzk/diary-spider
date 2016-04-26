@@ -1,3 +1,4 @@
 *.pyc
 diarySpider.log
 qiniuConf.py
+nohup.out

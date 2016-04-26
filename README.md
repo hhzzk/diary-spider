@@ -20,3 +20,10 @@ The project use mongoDB, installation method [Install MongoDB](http://docs.mongo
 Note
 ---
 数据在存入mongoDB时进行了b64encode编码,所以使用是需要b64decode解码
+
+supervisor configration
+[program:diarySpider]
+command=python spider.py
+directory=/home/hhzzk/diarySpider/
+user=root
+stdout_logfile=/home/hhzzk/diarySpider/diarySpider.log
