@@ -6,7 +6,6 @@ import requests
 from time            import sleep
 from random          import randint
 from pymongo         import MongoClient
-from base64          import b64encode, b64decode
 from multiprocessing import Process
 
 from qiniuApi  import push_file
@@ -16,8 +15,7 @@ from page      import get_newest_diary_no
 from logger    import dlogger as logger
 from constants import DIARY_URL, PEOPLE_URL, ERROR_MAX, \
                       USER_NUM_MIN, USER_NUM_MID, USER_NUM_MID2, \
-                      HAVE_NOT_OUTDATE, CURRENT_DIARY_ID, \
-                      DIARY_ID_MIN
+                      HAVE_NOT_OUTDATE, CURRENT_DIARY_ID
 
 user_error_count = 0
 
@@ -55,7 +53,7 @@ def userSpider():
             user_url = PEOPLE_URL + str(user_num)
             user = UserPage(user_url)
             if user.status_code != 200:
-                post = {"userid"       : userid, \
+                post = {"userid"       : str(user_num), \
                         "status"       : str(1)
                        }
                 coll_user.insert(post)
