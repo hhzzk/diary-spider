@@ -3,22 +3,21 @@ import io
 import os
 import json
 import requests
-from time import sleep
-from random import randint
-from pymongo import MongoClient
-from base64 import b64encode, b64decode
-from  multiprocessing import Process
+from time            import sleep
+from random          import randint
+from pymongo         import MongoClient
+from base64          import b64encode, b64decode
+from multiprocessing import Process
 
-
-from qiniuApi import push_file
+from qiniuApi  import push_file
 from diaryPage import DiaryPage
-from userPage import UserPage
-from page import get_newest_diary_no
-from logger import dlogger as logger
+from userPage  import UserPage
+from page      import get_newest_diary_no
+from logger    import dlogger as logger
 from constants import DIARY_URL, PEOPLE_URL, ERROR_MAX, \
-                      user_min, user_mid, user_mid2, \
-                      HAVE_NOT_OUTDATE, current_diary_no, \
-                      diary_min
+                      USER_NUM_MIN, USER_NUM_MID, USER_NUM_MID2, \
+                      HAVE_NOT_OUTDATE, CURRENT_DIARY_ID, \
+                      DIARY_ID_MIN
 
 user_error_count = 0
 
@@ -34,26 +33,26 @@ coll_diary = db_diarySpider['coll_diary']
 
 def userSpider():
     global user_error_count
-    user_no = user_min
-    while 1 :
-        if user_no < user_mid2 and user_no > user_mid:
-            user_no = user_mid2
+    user_num = USER_NUM_MIN
+    while 1:
+        if user_num < USER_NUM_MID2 and user_num > USER_NUM_MID:
+            user_num = USER_NUM_MID2
             continue
 
         # If too mang error, sleep 1 hour
         if user_error_count > ERROR_MAX:
             logger.warning("Error count over the max value!!!")
-            user_no = user_no - ERROR_MAX
+            user_num = user_num - ERROR_MAX
             sleep(3600)
             continue
 
-        if coll_user.find_one({"userid" : str(user_no)}):
-            logger.info("This user exist, user number is " + str(user_no))
-            user_no = user_no + 1
+        if coll_user.find_one({"userid" : str(user_num)}):
+            logger.info("This user exist, user number is " + str(user_num))
+            user_num = user_num + 1
             continue
 
         try:
-            user_url = PEOPLE_URL + str(user_no)
+            user_url = PEOPLE_URL + str(user_num)
             user = UserPage(user_url)
             if user.status_code != 200:
                 post = {"userid"       : userid, \
@@ -62,7 +61,7 @@ def userSpider():
                 coll_user.insert(post)
                 logger.error("Get url error, url is " + user_url)
 
-                user_no = user_no + 1
+                user_num = user_num + 1
                 user_error_count = user_error_count + 1
                 randomSleep(40, 100)
                 continue
@@ -81,9 +80,9 @@ def userSpider():
                     "icon_img"     : icon_img, \
                     "notebooks"    : notebooks, \
                     "status"       : str(0)
-                    }
+                   }
 
-            user_file = "user_" + str(user_no)
+            user_file = "user_" + str(user_num)
             with io.open(user_file, 'w', encoding='utf8') as json_file:
                 post_string = json.dumps(post, ensure_ascii=False, \
                                          encoding='utf8')
@@ -95,15 +94,15 @@ def userSpider():
             coll_user.insert(post)
 
             logger.info("Get user information successfully, \
-                    user number is " + str(user_no))
+                    user number is " + str(user_num))
             user_error_count = 0
 
         except:
             logger.error("Get user information error, \
-                    user number is " + str(user_no))
+                    user number is " + str(user_num))
             user_error_count = user_error_count + 1
 
-        user_no = user_no + 1
+        user_num = user_num + 1
         randomSleep(40, 100)
 
 def diary_into_database(diary_no, diary):
@@ -149,7 +148,7 @@ def diary_into_database(diary_no, diary):
             "create_time"  : time, \
             "comments"     : comments, \
             "status"       : str(0)
-            }
+           }
 
     diary_file = "diary_" + str(diary_no)
     with io.open(diary_file, 'w', encoding='utf8') as json_file:
@@ -163,7 +162,7 @@ def diary_into_database(diary_no, diary):
     return True
 
 def realtimeDiarySpider():
-    diary_no = current_diary_no
+    diary_no = CURRENT_DIARY_ID
     newest_diary_no = get_newest_diary_no()
 
     while 1:
