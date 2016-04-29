@@ -17,8 +17,6 @@ from constants import DIARY_URL, PEOPLE_URL, ERROR_MAX, \
                       USER_NUM_MIN, USER_NUM_MID, USER_NUM_MID2, \
                       HAVE_NOT_OUTDATE, CURRENT_DIARY_ID
 
-user_error_count = 0
-
 def randomSleep(min, max):
     sleep(randint(min, max))
 
@@ -30,7 +28,7 @@ coll_diary = db_diarySpider['coll_diary']
 
 
 def userSpider():
-    global user_error_count
+    user_error_count = 0
     user_num = USER_NUM_MIN
     while 1:
         if user_num < USER_NUM_MID2 and user_num > USER_NUM_MID:
