@@ -8,9 +8,9 @@ from random          import randint
 from pymongo         import MongoClient
 from multiprocessing import Process
 
-from qiniuApi  import push_file
-from diaryPage import DiaryPage
-from userPage  import UserPage
+from qiniu_api import push_file
+from diarypage import DiaryPage
+from userpage  import UserPage
 from page      import get_newest_diary_no
 from logger    import dlogger as logger
 from constants import DIARY_URL, PEOPLE_URL, ERROR_MAX, \
