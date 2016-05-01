@@ -4,7 +4,7 @@ import os
 import requests
 
 from page     import Page
-from qiniuApi import push_file
+from qiniu_api import push_file
 from logger   import dlogger as logger
 
 class UserPage(Page):

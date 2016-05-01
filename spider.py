@@ -17,17 +17,17 @@ from constants import DIARY_URL, PEOPLE_URL, ERROR_MAX, \
                       USER_NUM_MIN, USER_NUM_MID, USER_NUM_MID2, \
                       HAVE_NOT_OUTDATE, CURRENT_DIARY_ID
 
-def randomSleep(min, max):
-    sleep(randint(min, max))
+def random_sleep(interval_min, interval_max):
+    sleep(randint(interval_min, interval_max))
 
 # Database init
-client = MongoClient('localhost', 27017)
-db_diarySpider = client.diarySpider
-coll_user = db_diarySpider['coll_user']
-coll_diary = db_diarySpider['coll_diary']
+MONGOCLIENT = MongoClient('localhost', 27017)
+DB_DIARY_SPIDER = MONGOCLIENT.diarySpider
+COLL_USER = DB_DIARY_SPIDER['COLL_USER']
+COLL_DIARY = DB_DIARY_SPIDER['COLL_DIARY']
 
 
-def userSpider():
+def user_spider():
     user_error_count = 0
     user_num = USER_NUM_MIN
     while 1:
@@ -42,7 +42,7 @@ def userSpider():
             sleep(3600)
             continue
 
-        if coll_user.find_one({"userid" : str(user_num)}):
+        if COLL_USER.find_one({"userid" : str(user_num)}):
             logger.info("This user exist, user number is " + str(user_num))
             user_num = user_num + 1
             continue
@@ -54,12 +54,12 @@ def userSpider():
                 post = {"userid"       : str(user_num), \
                         "status"       : str(1)
                        }
-                coll_user.insert(post)
+                COLL_USER.insert(post)
                 logger.error("Get url error, url is " + user_url)
 
                 user_num = user_num + 1
                 user_error_count = user_error_count + 1
-                randomSleep(40, 100)
+                random_sleep(40, 100)
                 continue
 
             username, userid = user.get_username_and_id()
@@ -87,7 +87,7 @@ def userSpider():
             push_file(user_file)
             os.remove(user_file)
 
-            coll_user.insert(post)
+            COLL_USER.insert(post)
 
             logger.info("Get user information successfully, \
                     user number is " + str(user_num))
@@ -99,7 +99,7 @@ def userSpider():
             user_error_count = user_error_count + 1
 
         user_num = user_num + 1
-        randomSleep(40, 100)
+        random_sleep(40, 100)
 
 def diary_into_database(diary_no, diary):
     time, content, img_url = diary.get_diary_body()
@@ -107,7 +107,7 @@ def diary_into_database(diary_no, diary):
         post = {"diaryid" : str(diary_no), \
                 "status"  : str(1)
                }
-        coll_diary.insert(post)
+        COLL_DIARY.insert(post)
         return True
 
     img_name = None
@@ -153,16 +153,16 @@ def diary_into_database(diary_no, diary):
 
     push_file(diary_file)
     os.remove(diary_file)
-    coll_diary.insert(post)
+    COLL_DIARY.insert(post)
 
     return True
 
-def realtimeDiarySpider():
+def realtime_diary_spider():
     diary_no = CURRENT_DIARY_ID
     newest_diary_no = get_newest_diary_no()
 
     while 1:
-        if coll_diary.find_one({"diaryid" : str(diary_no)}):
+        if COLL_DIARY.find_one({"diaryid" : str(diary_no)}):
             logger.info("This diary is exist, number is " + str(diary_no))
             diary_no = diary_no + 1
             continue
@@ -185,7 +185,7 @@ def realtimeDiarySpider():
             post = {"diaryid" : str(diary_no), \
                     "status"  : str(2)
                    }
-            coll_diary.insert(post)
+            COLL_DIARY.insert(post)
 
             logger.error("Get url error, url is " + diary_url)
             if diary_no <= newest_diary_no:
@@ -193,12 +193,12 @@ def realtimeDiarySpider():
             else:
                 newest_diary_no = get_newest_diary_no()
 
-        randomSleep(10, 30)
+        random_sleep(10, 30)
 
 def start():
     # Create subthread and run
-    Process(target=userSpider, args=()).start()
-    Process(target=realtimeDiarySpider, args=()).start()
+    Process(target=user_spider, args=()).start()
+    Process(target=realtime_diary_spider, args=()).start()
 
 if __name__ == '__main__':
     start()

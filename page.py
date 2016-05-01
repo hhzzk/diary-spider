@@ -1,8 +1,7 @@
-import re
 import requests
 from bs4 import BeautifulSoup
 
-from constants import *
+from constants import HOME_URL
 from logger import dlogger as logger
 
 def get_newest_diary_no():
@@ -24,12 +23,12 @@ def get_newest_diary_no():
 
 class Page(object):
     def __init__(self, url):
-        page = requests.get(url);
+        self.page = requests.get(url);
 
-        self.soup = BeautifulSoup(page.text, "html5lib")
-        self.content = page.content;
+        self.soup = BeautifulSoup(self.page.text, "html5lib")
+        self.content = self.page.content;
         self.url = url
-        self.status_code = page.status_code
+        self.status_code = self.page.status_code
 
     def get_username_and_id(self):
         # Get user id and user name

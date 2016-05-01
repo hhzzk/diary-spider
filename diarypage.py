@@ -1,11 +1,5 @@
 #-*- coding: UTF-8 -*-
-import re
-import requests
-from bs4 import BeautifulSoup
-
-import constants
 from page import Page
-from qiniuApi import push_file
 from logger import dlogger as logger
 
 class DiaryPage(Page):
