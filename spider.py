@@ -13,9 +13,8 @@ from diarypage import DiaryPage
 from userpage  import UserPage
 from page      import get_newest_diary_no
 from logger    import dlogger as logger
-from constants import DIARY_URL, PEOPLE_URL, ERROR_MAX, \
-                      USER_NUM_MIN, USER_NUM_MID, USER_NUM_MID2, \
-                      HAVE_NOT_OUTDATE, CURRENT_DIARY_ID
+from constants import DIARY_URL, PEOPLE_URL, HAVE_NOT_OUTDATE, \
+                      USER_ID_MIN, USER_ID_MID, USER_ID_MID2
 
 def random_sleep(interval_min, interval_max):
     sleep(randint(interval_min, interval_max))
@@ -23,42 +22,34 @@ def random_sleep(interval_min, interval_max):
 # Database init
 MONGOCLIENT = MongoClient('localhost', 27017)
 DB_DIARY_SPIDER = MONGOCLIENT.diarySpider
-COLL_USER = DB_DIARY_SPIDER['COLL_USER']
-COLL_DIARY = DB_DIARY_SPIDER['COLL_DIARY']
+COLL_USER = DB_DIARY_SPIDER['coll_user']
+COLL_DIARY = DB_DIARY_SPIDER['coll_diary']
 
 
 def user_spider():
-    user_error_count = 0
-    user_num = USER_NUM_MIN
+    user_id = USER_ID_MIN
     while 1:
-        if user_num < USER_NUM_MID2 and user_num > USER_NUM_MID:
-            user_num = USER_NUM_MID2
+        if user_id > USER_ID_MID:
+            user_id = USER_ID_MID2
             continue
 
-        # If too mang error, sleep 1 hour
-        if user_error_count > ERROR_MAX:
-            logger.warning("Error count over the max value!!!")
-            user_num = user_num - ERROR_MAX
-            sleep(3600)
-            continue
-
-        if COLL_USER.find_one({"userid" : str(user_num)}):
-            logger.info("This user exist, user number is " + str(user_num))
-            user_num = user_num + 1
+        if COLL_USER.find_one({"userid" : str(user_id)}):
+            logger.info("This user exist, user number is " + str(user_id))
+            user_id = user_id + 1
             continue
 
         try:
-            user_url = PEOPLE_URL + str(user_num)
+            user_url = PEOPLE_URL + str(user_id)
             user = UserPage(user_url)
+            # User does not exist, status will be 1
             if user.status_code != 200:
-                post = {"userid"       : str(user_num), \
+                post = {"userid"       : str(user_id), \
                         "status"       : str(1)
                        }
                 COLL_USER.insert(post)
                 logger.error("Get url error, url is " + user_url)
 
-                user_num = user_num + 1
-                user_error_count = user_error_count + 1
+                user_id = user_id + 1
                 random_sleep(40, 100)
                 continue
 
@@ -68,7 +59,7 @@ def user_spider():
             icon_img = user.get_icon_img()
             notebooks = user.get_notebooks()
 
-            # Insert into database
+            # Insert into database, status will be 0
             post = {"username"     : username, \
                     "userid"       : userid, \
                     "joindate"     : joindate, \
@@ -78,7 +69,7 @@ def user_spider():
                     "status"       : str(0)
                    }
 
-            user_file = "user_" + str(user_num)
+            user_file = "user_" + str(user_id)
             with io.open(user_file, 'w', encoding='utf8') as json_file:
                 post_string = json.dumps(post, ensure_ascii=False, \
                                          encoding='utf8')
@@ -90,15 +81,13 @@ def user_spider():
             COLL_USER.insert(post)
 
             logger.info("Get user information successfully, \
-                    user number is " + str(user_num))
-            user_error_count = 0
+                    user number is " + str(user_id))
 
         except:
             logger.error("Get user information error, \
-                    user number is " + str(user_num))
-            user_error_count = user_error_count + 1
+                    user number is " + str(user_id))
 
-        user_num = user_num + 1
+        user_id = user_id + 1
         random_sleep(40, 100)
 
 def diary_into_database(diary_no, diary):
@@ -157,9 +146,42 @@ def diary_into_database(diary_no, diary):
 
     return True
 
-def realtime_diary_spider():
-    diary_no = CURRENT_DIARY_ID
-    newest_diary_no = get_newest_diary_no()
+def old_diary_spider(diary_no):
+    diary_no = diary_no
+
+    while 1:
+        if COLL_DIARY.find_one({"diaryid" : str(diary_no)}):
+            logger.info("This diary is exist, number is " + str(diary_no))
+            diary_no = diary_no - 1
+            continue
+
+        diary_url = DIARY_URL + str(diary_no)
+        diary = DiaryPage(diary_url)
+        if diary.status_code == 200:
+            try:
+                diary_into_database(diary_no, diary)
+                logger.info("Get diary information successfully, \
+                        diary number is " + str(diary_no))
+                diary_no = diary_no - 1
+
+            except:
+                logger.error("Get diary information error, \
+                        diary number is " + str(diary_no))
+                diary_no = diary_no - 1
+
+        elif diary.status_code == 404:
+            post = {"diaryid" : str(diary_no), \
+                    "status"  : str(2)
+                   }
+            COLL_DIARY.insert(post)
+
+            logger.error("Get url error, url is " + diary_url)
+
+        random_sleep(10, 30)
+
+
+def realtime_diary_spider(diary_no):
+    diary_no = diary_no
 
     while 1:
         if COLL_DIARY.find_one({"diaryid" : str(diary_no)}):
@@ -188,17 +210,19 @@ def realtime_diary_spider():
             COLL_DIARY.insert(post)
 
             logger.error("Get url error, url is " + diary_url)
-            if diary_no <= newest_diary_no:
+            newest_diary_no = get_newest_diary_no()
+            if diary_no < newest_diary_no:
                 diary_no = diary_no + 1
-            else:
-                newest_diary_no = get_newest_diary_no()
 
         random_sleep(10, 30)
 
 def start():
     # Create subthread and run
     Process(target=user_spider, args=()).start()
-    Process(target=realtime_diary_spider, args=()).start()
+
+    newest_diary_no = get_newest_diary_no()
+    Process(target=realtime_diary_spider, args=(newest_diary_no)).start()
+    Process(target=old_diary_spider, args=(newest_diary_no-1)).start()
 
 if __name__ == '__main__':
     start()
