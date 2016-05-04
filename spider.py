@@ -218,11 +218,11 @@ def realtime_diary_spider(diary_no):
 
 def start():
     # Create subthread and run
-    Process(target=user_spider, args=()).start()
-
     newest_diary_no = get_newest_diary_no()
-    Process(target=realtime_diary_spider, args=(newest_diary_no)).start()
-    Process(target=old_diary_spider, args=(newest_diary_no-1)).start()
+
+    Process(target=user_spider, args=()).start()
+    Process(target=realtime_diary_spider, args=(newest_diary_no,)).start()
+    Process(target=old_diary_spider, args=(newest_diary_no-1,)).start()
 
 if __name__ == '__main__':
     start()
